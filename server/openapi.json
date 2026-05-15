@@ -1,0 +1,172 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API ProyectoFinal",
+    "version": "1.0.0",
+    "description": "API en Flask para gestionar proyectos, subir ficheros y generar gráficas"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000"
+    }
+  ],
+  "paths": {
+    "/proyects": {
+      "post": {
+        "summary": "Crea un nuevo proyecto",
+        "responses": {
+          "200": {
+            "description": "Proyecto creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "example": "1" }
+                  }
+                },
+                "examples": {
+                  "creado": {
+                    "summary": "Proyecto recién creado",
+                    "value": { "id": "1" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proyects/{id}/upload": {
+      "post": {
+        "summary": "Sube una carpeta de ficheros al proyecto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "1"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "binary" }
+                  }
+                },
+                "required": ["files"]
+              },
+              "encoding": {
+                "files": {
+                  "contentType": "application/octet-stream"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ficheros subidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "files": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "count": { "type": "integer" }
+                  }
+                },
+                "examples": {
+                  "subida-ok": {
+                    "summary": "Carpeta subida con varios ficheros",
+                    "value": {
+                      "id": "1",
+                      "files": [
+                        "TypicalSection.xlsx",
+                        "plot_config.csv",
+                        "subcarpeta/datos.csv"
+                      ],
+                      "count": 3
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sin ficheros en la petición",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string" }
+                  }
+                },
+                "examples": {
+                  "sin-ficheros": {
+                    "summary": "No se envió ningún fichero",
+                    "value": { "error": "No se enviaron ficheros" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proyects/{id}/execute_plots": {
+      "post": {
+        "summary": "Genera las gráficas del proyecto y devuelve la URL de la imagen resultante",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "URL de la imagen generada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "url": {
+                      "type": "string",
+                      "example": "http://localhost:5000/uploads/1/plot.png"
+                    }
+                  }
+                },
+                "examples": {
+                  "plot-generado": {
+                    "summary": "Gráfica de cos(x) generada",
+                    "value": {
+                      "id": "1",
+                      "url": "http://localhost:5000/uploads/1/plot.png"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
