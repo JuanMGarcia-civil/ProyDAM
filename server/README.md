@@ -8,21 +8,36 @@ pip install -r requirements.txt
 python app.py
 ```
 ```
+//CONFIGURACIÓN DE FIREBASE PARA PROYECTO PROYDAM-JMG
 // Import the functions you need from the SDKs you need
+
 import { initializeApp } from "firebase/app";
+
 // TODO: Add SDKs for Firebase products that you want to use
+
 // https://firebase.google.com/docs/web/setup#available-libraries
+
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDeGUqXqhFLlejaueZzgXrF-N-9et3oUSM",
-  authDomain: "proydam.firebaseapp.com",
-  projectId: "proydam",
-  storageBucket: "proydam.firebasestorage.app",
-  messagingSenderId: "404211670372",
-  appId: "1:404211670372:web:49fd22dfe6caf5c8dc2e71"
+
+
+  apiKey: "AIzaSyBNTeIq-JyHSo36Mg-BH7nhihksncIGsNg",
+
+  authDomain: "plotme-proydam-jmg.firebaseapp.com",
+
+  projectId: "plotme-proydam-jmg",
+
+  storageBucket: "plotme-proydam-jmg.firebasestorage.app",
+
+  messagingSenderId: "616153650973",
+
+  appId: "1:616153650973:web:3c3024ae0ba1cd76dd33f4"
+
 };
 
+
 // Initialize Firebase
+
 const app = initializeApp(firebaseConfig);
 ```

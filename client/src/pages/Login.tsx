@@ -18,10 +18,10 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
     try {
-      login(email, password);
+      await login(email, password);
       history.replace('/home');
     } catch (e: any) {
       setError(e.message);

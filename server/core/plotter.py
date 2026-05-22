@@ -1,4 +1,5 @@
 import os
+import re
 import matplotlib.pyplot as plt
 import pandas as pd
 import csv
@@ -12,10 +13,107 @@ import docx2md
 class Plotter:
     SKIP_KEYWORDS = ["skip", "template", "notes", "archive"]
 
-    def __init__(self, input_dir, output_dir):
+    def __init__(self, input_dir, output_dir, host=""):
         self.input_dir = input_dir
         self.output_dir = output_dir
+        self.host = host.rstrip("/")
         os.makedirs(self.output_dir, exist_ok=True)
+
+    def run(self):
+        config_file = os.path.join(self.input_dir, "plot_config.xlsx")
+        plot_registry = []
+
+        if not os.path.exists(config_file):
+            return plot_registry
+
+        # Use ExcelFile to access all sheet names first
+        xl = pd.ExcelFile(config_file)
+        doc = Document()
+        doc.add_heading('Multi-Structure Interaction Diagram Report', 0)
+
+        fig_count = 1
+
+        for sheet in xl.sheet_names:
+            # Skip logic
+            if any(key in sheet.lower() for key in self.SKIP_KEYWORDS):
+                print(f"Skipping sheet: {sheet}")
+                continue
+
+            print(f"\n--- Processing Sheet: {sheet} ---")
+            df = pd.read_excel(xl, sheet_name=sheet)
+
+            # Ensure the sheet isn't empty and has required columns
+            if df.empty or 'Graph_Title' not in df.columns:
+                print(f"Sheet {sheet} is empty or missing 'Graph_Title'. Skipping.")
+                continue
+
+            for _, row in df.iterrows():
+                #_ es el índice de la fila, iterrows() devuelve (index, row)
+                # Basic check to skip empty rows in Excel
+                if pd.isna(row['Graph_Title']):
+                    continue
+
+                print(f"  Plotting: {row['Graph_Title']}...")
+                fname, desc = self.process_and_plot(row, sheet)
+                plot_registry.append({'Sheet': sheet, 'File Name': fname, 'Description': desc})
+
+                # Add to Word Doc
+                doc.add_picture(os.path.join(self.output_dir, fname), width=Inches(6))
+
+                # Simplified Caption (Safe). Añade un pie de foto de estilo de parrafo "Caption"
+                p = doc.add_paragraph()
+                try:
+                    p.style = 'Caption'
+                except Exception:
+                    p.style = 'Normal'
+                run = p.add_run(f"Figure {fig_count}: {desc}")
+                run.bold = True
+                p.alignment = 1
+
+                fig_count += 1
+                doc.add_page_break()
+
+        # Save CSV
+        csv_path = os.path.join(self.output_dir, "Summary_List.csv")
+        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+            w = csv.DictWriter(f, fieldnames=['Sheet', 'File Name', 'Description'])
+            w.writeheader()
+            w.writerows(plot_registry)
+
+        # Guarda archivo Word Doc
+        doc_path = os.path.join(self.output_dir, "Final_Report.docx")
+        try:
+            doc.save(doc_path)
+            print(f"\nDone! Results saved in: {self.output_dir}")
+        except PermissionError:
+            print(f"\n[!] ERROR: Could not save Word file. Please close 'Final_Report.docx' and try again.")
+
+        # Crea copia del archivo Word Doc en archivo MD usando libreria docx2md
+        md_str = docx2md.do_convert(doc_path, target_dir=self.output_dir, use_md_table=False)
+        md_str = self._absolutize_image_urls(md_str)
+        md_path = os.path.join(self.output_dir, "Final_Report.md")
+        with open(md_path, "w", encoding="utf-8") as file:
+            file.write(md_str)
+
+        return plot_registry
+
+    def _absolutize_image_urls(self, md_str):
+        # Rewrite relative `media/imageN.png` paths in the generated markdown
+        # to absolute URLs served by the Flask app, e.g.
+        # http://localhost:5000/uploads/1/Plots/media/image1.png
+        if not self.host:
+            return md_str
+        parts = self.output_dir.replace(os.sep, "/").split("/")
+        if "uploads" not in parts:
+            return md_str
+        url_path = "/".join(parts[parts.index("uploads"):])  # uploads/1/Plots
+        media_base = f"{self.host}/{url_path}/media"
+        return re.sub(
+            r'src="(?:[^"]*/)?media/([^"]+)"',
+            f'src="{media_base}/\\1"',
+            md_str,
+        )
+
 
     def get_excel_data(self, file_path, sheet_name, start_row, end_row, col_x, col_y):
         file_path = str(file_path).strip().replace('"', '').replace("'", "")
@@ -119,83 +217,6 @@ class Plotter:
 
         description = f"N-M diagram for {file_safe_name}"
         return png_name, description
-
-    def run(self):
-        config_file = os.path.join(self.input_dir, "plot_config.xlsx")
-        plot_registry = []
-
-        if not os.path.exists(config_file):
-            return plot_registry
-
-        # Use ExcelFile to access all sheet names first
-        xl = pd.ExcelFile(config_file)
-        doc = Document()
-        doc.add_heading('Multi-Structure Interaction Diagram Report', 0)
-
-        fig_count = 1
-
-        for sheet in xl.sheet_names:
-            # Skip logic
-            if any(key in sheet.lower() for key in self.SKIP_KEYWORDS):
-                print(f"Skipping sheet: {sheet}")
-                continue
-
-            print(f"\n--- Processing Sheet: {sheet} ---")
-            df = pd.read_excel(xl, sheet_name=sheet)
-
-            # Ensure the sheet isn't empty and has required columns
-            if df.empty or 'Graph_Title' not in df.columns:
-                print(f"Sheet {sheet} is empty or missing 'Graph_Title'. Skipping.")
-                continue
-
-            for _, row in df.iterrows():
-                #_ es el índice de la fila, iterrows() devuelve (index, row)
-                # Basic check to skip empty rows in Excel
-                if pd.isna(row['Graph_Title']):
-                    continue
-
-                print(f"  Plotting: {row['Graph_Title']}...")
-                fname, desc = self.process_and_plot(row, sheet)
-                plot_registry.append({'Sheet': sheet, 'File Name': fname, 'Description': desc})
-
-                # Add to Word Doc
-                doc.add_picture(os.path.join(self.output_dir, fname), width=Inches(6))
-
-                # Simplified Caption (Safe). Añade un pie de foto de estilo de parrafo "Caption"
-                p = doc.add_paragraph()
-                try:
-                    p.style = 'Caption'
-                except Exception:
-                    p.style = 'Normal'
-                run = p.add_run(f"Figure {fig_count}: {desc}")
-                run.bold = True
-                p.alignment = 1
-
-                fig_count += 1
-                doc.add_page_break()
-
-        # Save CSV
-        csv_path = os.path.join(self.output_dir, "Summary_List.csv")
-        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
-            w = csv.DictWriter(f, fieldnames=['Sheet', 'File Name', 'Description'])
-            w.writeheader()
-            w.writerows(plot_registry)
-
-        # Guarda archivo Word Doc
-        doc_path = os.path.join(self.output_dir, "Final_Report.docx")
-        try:
-            doc.save(doc_path)
-            print(f"\nDone! Results saved in: {self.output_dir}")
-        except PermissionError:
-            print(f"\n[!] ERROR: Could not save Word file. Please close 'Final_Report.docx' and try again.")
-
-        # Crea copia del archivo Word Doc en archivo MD usando libreria docx2md
-        md_str = docx2md.do_convert(doc_path, target_dir=self.output_dir, use_md_table=False)
-        md_path = os.path.join(self.output_dir, "Final_Report.md")
-        with open(md_path, "w", encoding="utf-8") as file:
-            file.write(md_str)
-
-        return plot_registry
 
 
 # --- MAIN EXECUTION ---

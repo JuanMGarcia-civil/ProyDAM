@@ -1,10 +1,12 @@
+import { useEffect, useState } from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
+import { IonApp, IonLoading, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Proyect from './pages/Proyect';
 import Signup from './pages/Signup';
-import { getCurrentUser } from './services/auth';
+import { subscribeToAuth, type User } from './services/auth';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -29,35 +31,55 @@ import './theme/variables.css';
 
 setupIonicReact();
 
-const PrivateRoute: React.FC<{ path: string; exact?: boolean; children: React.ReactNode }> = ({
-  children,
-  ...rest
-}) => (
-  <Route
-    {...rest}
-    render={() => (getCurrentUser() ? children : <Redirect to="/login" />)}
-  />
-);
+const App: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [ready, setReady] = useState(false);
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonRouterOutlet>
-        <Route exact path="/login">
-          <Login />
-        </Route>
-        <Route exact path="/signup">
-          <Signup />
-        </Route>
-        <PrivateRoute exact path="/home">
-          <Home />
-        </PrivateRoute>
-        <Route exact path="/">
-          <Redirect to={getCurrentUser() ? '/home' : '/login'} />
-        </Route>
-      </IonRouterOutlet>
-    </IonReactRouter>
-  </IonApp>
-);
+  useEffect(() => {
+    return subscribeToAuth((u) => {
+      setUser(u);
+      setReady(true);
+    });
+  }, []);
+
+  if (!ready) {
+    return (
+      <IonApp>
+        <IonLoading isOpen message="Cargando..." />
+      </IonApp>
+    );
+  }
+
+  const PrivateRoute: React.FC<{ path: string; exact?: boolean; children: React.ReactNode }> = ({
+    children,
+    ...rest
+  }) => (
+    <Route {...rest} render={() => (user ? children : <Redirect to="/login" />)} />
+  );
+
+  return (
+    <IonApp>
+      <IonReactRouter>
+        <IonRouterOutlet>
+          <Route exact path="/login">
+            <Login />
+          </Route>
+          <Route exact path="/signup">
+            <Signup />
+          </Route>
+          <PrivateRoute exact path="/home">
+            <Home />
+          </PrivateRoute>
+          <PrivateRoute exact path="/proyects/:id">
+            <Proyect />
+          </PrivateRoute>
+          <Route exact path="/">
+            <Redirect to={user ? '/home' : '/login'} />
+          </Route>
+        </IonRouterOutlet>
+      </IonReactRouter>
+    </IonApp>
+  );
+};
 
 export default App;

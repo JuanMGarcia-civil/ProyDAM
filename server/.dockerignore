@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+uploads/*
+!uploads/.keep
+credentials.json
+.gitignore
+README.md

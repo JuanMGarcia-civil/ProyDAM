@@ -4,7 +4,14 @@ from flask_cors import CORS
 from controllers import openapi_controller, proyects_controller
 
 app = Flask(__name__)
-CORS(app)
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers="*",
+    expose_headers="*",
+    supports_credentials=False,
+)
 
 
 @app.route("/")
@@ -22,6 +29,15 @@ def swagger_ui():
     return openapi_controller.get_docs()
 
 
+@app.route("/proyects", methods=["GET"])
+def list_proyects():
+    return proyects_controller.index()
+
+@app.route("/proyects/<proyect_id>", methods=["DELETE"])
+def delete_proyect(proyect_id):
+    return proyects_controller.delete(proyect_id)
+
+
 @app.route("/proyects", methods=["POST"])
 def create_proyect():
     return proyects_controller.create()
@@ -37,9 +53,14 @@ def execute_plots(proyect_id):
     return proyects_controller.execute_plots(proyect_id)
 
 
-@app.route("/uploads/<path:filename>")
-def serve_upload(filename):
-    return proyects_controller.serve_upload(filename)
+@app.route("/uploads/<project_id>", methods=["GET"])
+def serve_upload(project_id):
+    return proyects_controller.serve_upload(project_id)
+
+
+@app.route("/uploads/<project_id>/Plots/media/<path:filename>", methods=["GET"])
+def serve_plot_media(project_id, filename):
+    return proyects_controller.serve_plot_media(project_id, filename)
 
 
 if __name__ == "__main__":

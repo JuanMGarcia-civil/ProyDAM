@@ -19,10 +19,10 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     setError('');
     try {
-      signup(name, email, password);
+      await signup(name, email, password);
       history.replace('/home');
     } catch (e: any) {
       setError(e.message);

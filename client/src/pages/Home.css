@@ -22,3 +22,24 @@
   color: var(--ion-color-medium);
   text-align: center;
 }
+
+.report-content {
+  padding: 24px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.report-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 16px auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.report-content .page {
+  height: 1px;
+  margin: 32px 0;
+  border-top: 1px dashed var(--ion-color-medium);
+}

@@ -29,3 +29,10 @@ yarn-error.log*
 
 # Optional eslint cache
 .eslintcache
+
+credentials.json
+*-firebase-adminsdk-*.json
+
+# Firebase Web SDK config — using env vars
+.env
+.env.local
