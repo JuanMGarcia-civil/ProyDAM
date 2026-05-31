@@ -11,28 +11,21 @@
     }
   ],
   "paths": {
-    "/proyects": {
-      "post": {
-        "summary": "Crea un nuevo proyecto",
+    "/proyects/{id}": {
+      "delete": {
+        "summary": "Elimina un proyecto y sus ficheros",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "1"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Proyecto creado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": { "type": "string", "example": "1" }
-                  }
-                },
-                "examples": {
-                  "creado": {
-                    "summary": "Proyecto recién creado",
-                    "value": { "id": "1" }
-                  }
-                }
-              }
-            }
+            "description": "Proyecto eliminado"
           }
         }
       }
@@ -93,31 +86,11 @@
                     "value": {
                       "id": "1",
                       "files": [
-                        "TypicalSection.xlsx",
-                        "plot_config.csv",
+                        "plot_config.xlsx",
                         "subcarpeta/datos.csv"
                       ],
-                      "count": 3
+                      "count": 2
                     }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Sin ficheros en la petición",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": { "type": "string" }
-                  }
-                },
-                "examples": {
-                  "sin-ficheros": {
-                    "summary": "No se envió ningún fichero",
-                    "value": { "error": "No se enviaron ficheros" }
                   }
                 }
               }
@@ -128,7 +101,7 @@
     },
     "/proyects/{id}/execute_plots": {
       "post": {
-        "summary": "Genera las gráficas del proyecto y devuelve la URL de la imagen resultante",
+        "summary": "Genera las gráficas y el informe del proyecto",
         "parameters": [
           {
             "name": "id",
@@ -140,28 +113,122 @@
         ],
         "responses": {
           "200": {
-            "description": "URL de la imagen generada",
+            "description": "Registro de las gráficas generadas",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "id": { "type": "string" },
-                    "url": {
-                      "type": "string",
-                      "example": "http://localhost:5000/uploads/1/plot.png"
+                    "output_dir": { "type": "string" },
+                    "plots": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "Sheet": { "type": "string" },
+                          "File Name": { "type": "string" },
+                          "Description": { "type": "string" }
+                        }
+                      }
                     }
                   }
                 },
                 "examples": {
-                  "plot-generado": {
-                    "summary": "Gráfica de cos(x) generada",
+                  "plots-generados": {
+                    "summary": "Gráficas generadas a partir de plot_config.xlsx",
                     "value": {
                       "id": "1",
-                      "url": "http://localhost:5000/uploads/1/plot.png"
+                      "output_dir": "/app/uploads/1/Plots",
+                      "plots": [
+                        {
+                          "Sheet": "TypicalSection",
+                          "File Name": "TypicalSection_1.png",
+                          "Description": "Interaction diagram"
+                        }
+                      ]
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uploads/{id}": {
+      "get": {
+        "summary": "Devuelve el informe final del proyecto en formato Markdown",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contenido del fichero Final_Report.md",
+            "content": {
+              "text/markdown": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uploads/{id}/Plots/media/{filename}": {
+      "get": {
+        "summary": "Sirve una imagen generada del informe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "1"
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "TypicalSection_1.png"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Imagen solicitada",
+            "content": {
+              "image/png": {
+                "schema": { "type": "string", "format": "binary" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uploads/{id}/Plots/Final_Report.docx": {
+      "get": {
+        "summary": "Descarga el informe final del proyecto en formato Word",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fichero Final_Report.docx",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": { "type": "string", "format": "binary" }
               }
             }
           }

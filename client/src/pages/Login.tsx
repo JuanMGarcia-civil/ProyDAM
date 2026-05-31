@@ -9,7 +9,7 @@ import {
   IonText,
 } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
-import { login } from '../services/auth';
+import { login, loginAnonymously } from '../services/auth';
 import './Auth.css';
 
 const Login: React.FC = () => {
@@ -22,6 +22,16 @@ const Login: React.FC = () => {
     setError('');
     try {
       await login(email, password);
+      history.replace('/home');
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+
+  const handleAnonymousLogin = async () => {
+    setError('');
+    try {
+      await loginAnonymously();
       history.replace('/home');
     } catch (e: any) {
       setError(e.message);
@@ -62,6 +72,14 @@ const Login: React.FC = () => {
 
             <IonButton expand="block" className="ion-margin-top" onClick={handleLogin}>
               Entrar
+            </IonButton>
+            <IonButton
+              expand="block"
+              fill="outline"
+              className="ion-margin-top"
+              onClick={handleAnonymousLogin}
+            >
+              Entrar como invitado
             </IonButton>
             <IonButton
               expand="block"

@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import {
   IonBackButton,
+  IonButton,
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonPage,
   IonSpinner,
   IonTitle,
   IonToolbar,
 } from '@ionic/react';
+import { downloadOutline } from 'ionicons/icons';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import './Home.css';
@@ -46,6 +49,15 @@ const Proyect: React.FC = () => {
             <IonBackButton defaultHref="/home" />
           </IonButtons>
           <IonTitle>Proyecto #{id}</IonTitle>
+          <IonButtons slot="end">
+            <IonButton
+              href={`${API_BASE}/uploads/${id}/Plots/Final_Report.docx`}
+              download="Final_Report.docx"
+            >
+              <IonIcon slot="start" icon={downloadOutline} />
+              Descargar informe
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>

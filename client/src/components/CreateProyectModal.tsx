@@ -10,27 +10,31 @@ import {
   IonModal,
   IonNote,
   IonText,
+  IonTextarea,
   IonTitle,
   IonToolbar,
 } from '@ionic/react';
 import axios from 'axios';
+import { addProyect } from '../services/proyects';
 
 const API_BASE = 'http://localhost:5000';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onCreated: (id: string) => void;
+  onCreated: (name: string) => void;
 }
 
 const CreateProyectModal: React.FC<Props> = ({ isOpen, onClose, onCreated }) => {
-  const [proyectId, setProyectId] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const reset = () => {
-    setProyectId('');
+    setName('');
+    setDescription('');
     setFiles([]);
     setError('');
     setSubmitting(false);
@@ -43,26 +47,22 @@ const CreateProyectModal: React.FC<Props> = ({ isOpen, onClose, onCreated }) => 
 
   const handleSubmit = async () => {
     setError('');
-    const id = proyectId.trim();
-    if (!id) {
-      setError('El ID del proyecto es obligatorio.');
-      return;
-    }
+    const projectName = name.trim();
     setSubmitting(true);
     try {
-      await axios.post(`${API_BASE}/proyects`, { id });
+      await addProyect(projectName, description.trim());
 
       if (files.length > 0) {
         const fd = new FormData();
         for (const f of files) {
           fd.append('files', f, f.name);
         }
-        await axios.post(`${API_BASE}/proyects/${id}/upload`, fd);
+        await axios.post(`${API_BASE}/proyects/${projectName}/upload`, fd);
       }
 
-      axios.post(`${API_BASE}/proyects/${id}/execute_plots`);
+      axios.post(`${API_BASE}/proyects/${projectName}/execute_plots`);
 
-      onCreated(id);
+      onCreated(projectName);
       handleClose();
     } catch (e: any) {
       setError(e?.message ?? 'Error al crear el proyecto');
@@ -84,11 +84,21 @@ const CreateProyectModal: React.FC<Props> = ({ isOpen, onClose, onCreated }) => 
       </IonHeader>
       <IonContent className="ion-padding">
         <IonItem>
-          <IonLabel position="stacked">ID del proyecto</IonLabel>
+          <IonLabel position="stacked">Nombre del proyecto</IonLabel>
           <IonInput
-            value={proyectId}
-            onIonInput={(e) => setProyectId(e.detail.value ?? '')}
-            placeholder="ej. 2"
+            value={name}
+            onIonInput={(e) => setName(e.detail.value ?? '')}
+            placeholder="ej. Mi proyecto"
+          />
+        </IonItem>
+
+        <IonItem className="ion-margin-top">
+          <IonLabel position="stacked">Descripción</IonLabel>
+          <IonTextarea
+            value={description}
+            onIonInput={(e) => setDescription(e.detail.value ?? '')}
+            placeholder="Describe brevemente el proyecto"
+            autoGrow
           />
         </IonItem>
 

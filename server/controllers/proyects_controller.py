@@ -15,28 +15,6 @@ os.makedirs(UPLOAD_ROOT, exist_ok=True)
 
 HOST = os.environ.get("PLOTTER_HOST", "http://localhost:5000")
 
-
-def create():
-    payload = request.get_json(silent=True) or {}
-    proyect_id = str(payload.get("id") or "1").strip()
-    os.makedirs(os.path.join(UPLOAD_ROOT, proyect_id), exist_ok=True)
-    return jsonify({"id": proyect_id})
-
-def delete(proyect_id):
-    # TODO: Implementar eliminación segura de proyectos
-    return jsonify({"id": proyect_id})
-
-
-def index():
-    entries = sorted(os.listdir(UPLOAD_ROOT))
-    proyects = [
-        {"id": name}
-        for name in entries
-        if os.path.isdir(os.path.join(UPLOAD_ROOT, name))
-    ]
-    return jsonify({"proyects": proyects})
-
-
 def upload(proyect_id, files):
     target_dir = Path(UPLOAD_ROOT) / proyect_id
     saved = []
@@ -66,3 +44,8 @@ def serve_upload(project_id):
 def serve_plot_media(project_id, filename):
     media_dir = os.path.join(UPLOAD_ROOT, project_id, "Plots", "media")
     return send_from_directory(media_dir, filename)
+
+
+def serve_final_report(project_id):
+    plots_dir = os.path.join(UPLOAD_ROOT, project_id, "Plots")
+    return send_from_directory(plots_dir, "Final_Report.docx", as_attachment=True)

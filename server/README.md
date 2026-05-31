@@ -1,12 +1,3 @@
-# ProyectoFinal
-
-```
-pip install -r requirements.txt
-```
-
-```
-python app.py
-```
 ```
 //CONFIGURACIÓN DE FIREBASE PARA PROYECTO PROYDAM-JMG
 // Import the functions you need from the SDKs you need

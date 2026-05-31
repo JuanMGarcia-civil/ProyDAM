@@ -8,36 +8,23 @@ import {
   IonLabel,
   IonList,
   IonListHeader,
-  IonNote,
   IonPage,
   IonTitle,
   IonToolbar,
 } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
-import axios from 'axios';
 import { getCurrentUser, logout } from '../services/auth';
+import { subscribeProyects, type Proyect } from '../services/proyects';
 import CreateProyectModal from '../components/CreateProyectModal';
 import './Home.css';
 
-interface Proyect {
-  id: string;
-}
-
 const Home: React.FC = () => {
-  const API_BASE = 'http://localhost:5000';
   const user = getCurrentUser();
   const history = useHistory();
   const [proyects, setProyects] = React.useState<Proyect[]>([]);
   const [showCreate, setShowCreate] = React.useState(false);
 
-  const fetchProyects = async () => {
-    const response = await axios.get(`${API_BASE}/proyects`);
-    setProyects(response.data.proyects ?? []);
-  };
-
-  useEffect(() => {
-    fetchProyects();
-  }, []);
+  useEffect(() => subscribeProyects(setProyects), []);
 
   const handleCreateProject = () => {
     setShowCreate(true);
@@ -48,8 +35,8 @@ const Home: React.FC = () => {
     history.replace('/login');
   };
 
-  const openProyect = (id: string) => {
-    history.push(`/proyects/${id}`);
+  const openProyect = (name: string) => {
+    history.push(`/proyects/${name}`);
   };
 
   return (
@@ -74,9 +61,11 @@ const Home: React.FC = () => {
             </IonItem>
           )}
           {proyects.map((p) => (
-            <IonItem button key={p.id} onClick={() => openProyect(p.id)}>
-              <IonLabel>Proyecto</IonLabel>
-              <IonNote slot="end">#{p.id}</IonNote>
+            <IonItem button key={p.id} onClick={() => openProyect(p.name)}>
+              <IonLabel>
+                <h2>{p.name}</h2>
+                <p>{p.description}</p>
+              </IonLabel>
             </IonItem>
           ))}
         </IonList>
@@ -84,7 +73,7 @@ const Home: React.FC = () => {
         <CreateProyectModal
           isOpen={showCreate}
           onClose={() => setShowCreate(false)}
-          onCreated={() => fetchProyects()}
+          onCreated={() => {}}
         />
       </IonContent>
     </IonPage>

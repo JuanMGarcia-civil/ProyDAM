@@ -29,18 +29,9 @@ def swagger_ui():
     return openapi_controller.get_docs()
 
 
-@app.route("/proyects", methods=["GET"])
-def list_proyects():
-    return proyects_controller.index()
-
 @app.route("/proyects/<proyect_id>", methods=["DELETE"])
 def delete_proyect(proyect_id):
     return proyects_controller.delete(proyect_id)
-
-
-@app.route("/proyects", methods=["POST"])
-def create_proyect():
-    return proyects_controller.create()
 
 
 @app.route("/proyects/<proyect_id>/upload", methods=["POST"])
@@ -61,6 +52,11 @@ def serve_upload(project_id):
 @app.route("/uploads/<project_id>/Plots/media/<path:filename>", methods=["GET"])
 def serve_plot_media(project_id, filename):
     return proyects_controller.serve_plot_media(project_id, filename)
+
+
+@app.route("/uploads/<project_id>/Plots/Final_Report.docx", methods=["GET"])
+def serve_final_report(project_id):
+    return proyects_controller.serve_final_report(project_id)
 
 
 if __name__ == "__main__":

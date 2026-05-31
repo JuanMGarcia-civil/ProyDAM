@@ -1,9 +1,13 @@
+#THIS FILE IS KEPT AS LEGACY, BUT THE ACTUAL SCRIPT IS PLOTTER.PY
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import csv
 from datetime import datetime
+
+#THIS FILE IS KEPT AS LEGACY, BUT THE ACTUAL SCRIPT IS PLOTTER.PY
 
 # --- 1. SETUP GLOBAL PATHS ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))

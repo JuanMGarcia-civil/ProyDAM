@@ -1,6 +1,7 @@
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  signInAnonymously,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -12,6 +13,11 @@ export type { User };
 
 export async function login(email: string, password: string): Promise<User> {
   const cred = await signInWithEmailAndPassword(auth, email, password);
+  return cred.user;
+}
+
+export async function loginAnonymously(): Promise<User> {
+  const cred = await signInAnonymously(auth);
   return cred.user;
 }
 

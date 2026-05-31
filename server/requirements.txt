@@ -6,3 +6,4 @@ openpyxl
 pandas
 python-docx
 docx2md
+pytest==9.0.3
